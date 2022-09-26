@@ -7,6 +7,10 @@ import { terser } from 'rollup-plugin-terser'
 
 import pkg from './package.json'
 
+const SOURCE_MAP = {
+  sourcemap: true
+}
+
 const extensions = ['.ts']
 const noDeclarationFiles = { compilerOptions: { declaration: false } }
 
@@ -24,7 +28,12 @@ export default defineConfig([
   // CommonJS
   {
     input: 'src/index.ts',
-    output: { file: 'lib/redux.js', format: 'cjs', indent: false },
+    output: {
+      file: 'lib/redux.js',
+      format: 'cjs',
+      indent: false,
+      ...SOURCE_MAP
+    },
     external,
     plugins: [
       nodeResolve({
@@ -45,7 +54,7 @@ export default defineConfig([
   // ES
   {
     input: 'src/index.ts',
-    output: { file: 'es/redux.js', format: 'es', indent: false },
+    output: { file: 'es/redux.js', format: 'es', indent: false, ...SOURCE_MAP },
     external,
     plugins: [
       nodeResolve({
@@ -69,7 +78,12 @@ export default defineConfig([
   // ES for Browsers
   {
     input: 'src/index.ts',
-    output: { file: 'es/redux.mjs', format: 'es', indent: false },
+    output: {
+      file: 'es/redux.mjs',
+      format: 'es',
+      indent: false,
+      ...SOURCE_MAP
+    },
     plugins: [
       nodeResolve({
         extensions
@@ -103,7 +117,8 @@ export default defineConfig([
       file: 'dist/redux.js',
       format: 'umd',
       name: 'Redux',
-      indent: false
+      indent: false,
+      ...SOURCE_MAP
     },
     plugins: [
       nodeResolve({
@@ -130,7 +145,8 @@ export default defineConfig([
       file: 'dist/redux.min.js',
       format: 'umd',
       name: 'Redux',
-      indent: false
+      indent: false,
+      ...SOURCE_MAP
     },
     plugins: [
       nodeResolve({
