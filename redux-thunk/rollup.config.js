@@ -8,11 +8,16 @@ const env = process.env.NODE_ENV;
 
 const extensions = ['.js', '.ts', '.tsx', '.json'];
 
+const SOURCE_MAP = {
+  sourcemap: true
+}
+
 const config = {
   input: 'src/index.ts',
   output: {
     format: 'umd',
     name: 'ReduxThunk',
+    ...SOURCE_MAP
   },
   plugins: [
     nodeResolve({
