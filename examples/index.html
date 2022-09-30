@@ -3,6 +3,7 @@
   <head>
     <title>Redux basic example</title>
     <script src="./dist/redux.js"></script>
+    <script src="./dist/redux-thunk.js"></script>
   </head>
   <body>
     <div>
@@ -30,7 +31,8 @@
         }
       }
 
-      var store = Redux.createStore(counter);
+      var middleware = [ReduxThunk]
+      var store = Redux.createStore(counter, Redux.applyMiddleware(...middleware));
       var valueEl = document.getElementById("value");
 
       function render() {
@@ -49,7 +51,11 @@
       document
         .getElementById("decrement")
         .addEventListener("click", function () {
-          store.dispatch({ type: "DECREMENT" });
+          store.dispatch((dispatch) => {
+            setTimeout(() => {
+              dispatch({ type: "DECREMENT" })
+            },1000)
+          });
         });
 
       document

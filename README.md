@@ -2,12 +2,12 @@
 
 ## 源码流程
 
-单向数据流1
+单向数据流
 ![流程](imgs/process.png)
 
 ## 工具方法
 
-- 判断一个对象是否是简单对象
+- 判断一个对象是否是普通对象
 
 ```ts
 function isPlainObject(obj: any): boolean {
@@ -19,6 +19,26 @@ function isPlainObject(obj: any): boolean {
   }
 
   return Object.getPrototypeOf(obj) === proto;
+}
+```
+
+- 一次调用多个函数
+```ts
+function compose(...funcs: Function[]) {
+  if (funcs.length === 0) {
+    // infer the argument type so it is usable in inference down the line
+    return <T>(arg: T) => arg
+  }
+
+  if (funcs.length === 1) {
+    return funcs[0]
+  }
+
+  return funcs.reduce(
+    (a, b) =>
+      (...args: any) =>
+        a(b(...args))
+  )
 }
 ```
 
