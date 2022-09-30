@@ -22,7 +22,7 @@ function isPlainObject(obj: any): boolean {
 }
 ```
 
-- 一次调用多个函数
+- 组合多个函数
 ```ts
 function compose(...funcs: Function[]) {
   if (funcs.length === 0) {
@@ -87,4 +87,8 @@ function dispatch(action: A) {
 
   return action;
 }
+```
+
+- 中间件实现-洋葱模型
+```ts
 ```

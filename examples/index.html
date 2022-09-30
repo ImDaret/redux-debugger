@@ -15,6 +15,7 @@
         <button id="incrementAsync">Increment async</button>
       </p>
     </div>
+    <script src="./js/middlewares.js"></script>
     <script>
       function counter(state, action) {
         if (typeof state === "undefined") {
@@ -31,7 +32,7 @@
         }
       }
 
-      var middleware = [ReduxThunk]
+      var middleware = [ReduxThunk, logger1, logger2]
       var store = Redux.createStore(counter, Redux.applyMiddleware(...middleware));
       var valueEl = document.getElementById("value");
 
