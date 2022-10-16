@@ -6,13 +6,13 @@
 
 - 打开 examples 目录下有 index.html
 
-- 打开开发者工具，在下图位置进行断电
-  ![debugger](imgs/debugger.png)
+- 打开开发者工具，在下图位置进行断点
+  [![debugger](imgs/debugger.png)](https://github.com/ImDaret/redux-debugger/blob/main/imgs/debugger.png)
 
 ## 设计理念
 
 单向数据流
-![流程](imgs/process.png)
+[![流程](imgs/process.png)](https://github.com/ImDaret/redux-debugger/blob/main/imgs/process.png)
 
 ## 设计思路
 
@@ -47,7 +47,7 @@ function dispatch(action: A) {
 
 ### 中间件实现-洋葱模型
 
-![洋葱模型](imgs/onion.png)
+[![洋葱模型](imgs/onion.png)](https://github.com/ImDaret/redux-debugger/blob/main/imgs/onion.png)
 
 ```ts
 // 假如我现在有两个中间件，middleware = [logger1, logger2]
