@@ -1,9 +1,60 @@
-# redux-debugger
+# redux
 
-## 源码流程
+本文主要总结一些 redux 源码库中的设计思路和值得学习的工具方法，如需学习源码流程请在[仓库](https://github.com/ImDaret/redux-debugger)中自行 debugger 进行了解
+
+## 如何 debugger 源码
+
+- 打开 examples 目录下有 index.html
+
+- 打开开发者工具，在下图位置进行断电
+  ![debugger](imgs/debugger.png)
+
+## 设计理念
 
 单向数据流
 ![流程](imgs/process.png)
+
+## 设计思路
+
+### currentListener & nextListener 保证订阅只在下一次 dispatch 生效
+
+订阅时`push`进 nextListeners
+
+```ts
+function subscribe(listener: () => void) {
+  // ...抛错代码
+  nextListeners.push(listener);
+  return function unsubscribe() {
+    nextListeners.splice(index, 1);
+  };
+}
+```
+
+dispatch 时对 currentListener 赋值，并且触发订阅
+
+```ts
+function dispatch(action: A) {
+  // ....
+  const listeners = (currentListeners = nextListeners); // 赋值并触发订阅
+  for (let i = 0; i < listeners.length; i++) {
+    const listener = listeners[i];
+    listener();
+  }
+
+  return action;
+}
+```
+
+### 中间件实现-洋葱模型
+
+![洋葱模型](imgs/onion.png)
+
+```ts
+// 假如我现在有两个中间件，middleware = [logger1, logger2]
+// 由 compose 函数可知，logger1 的 next 参数为 logger2 的返回值，logger2 的 next参数为store.dispatch，如果有更多中间件，以此类推。注意：中间件只有执行 next 方法才会向下继续执行
+// 所以调用 dispatch 就相当于经历了一层层的中间件，最终调用 store.dispatch(action)
+const dispatch = compose(...middleware)(store.dispatch);
+```
 
 ## 工具方法
 
@@ -40,81 +91,5 @@ function compose(...funcs: Function[]) {
       (...args: any) =>
         a(b(...args))
   );
-}
-```
-
-## 设计方法
-
-- currentListener & nextListener 保证订阅只在下一次 dispatch 生效
-
-订阅时`push`进 nextListeners
-
-```ts
-function subscribe(listener: () => void) {
-  // ...抛错代码
-  let isSubscribed = true;
-  ensureCanMutateNextListeners(); // 保证不是同一个引用
-  nextListeners.push(listener);
-  return function unsubscribe() {
-    if (!isSubscribed) {
-      return;
-    }
-    // ...抛错代码
-    isSubscribed = false;
-    ensureCanMutateNextListeners();
-    const index = nextListeners.indexOf(listener);
-    nextListeners.splice(index, 1);
-    currentListeners = null;
-  };
-}
-```
-
-dispatch 时对 currentListener 赋值，并且触发订阅
-
-```ts
-function dispatch(action: A) {
-  try {
-    isDispatching = true;
-    currentState = currentReducer(currentState, action); // 更新state
-  } finally {
-    isDispatching = false;
-  }
-
-  const listeners = (currentListeners = nextListeners); // 赋值并触发订阅
-  for (let i = 0; i < listeners.length; i++) {
-    const listener = listeners[i];
-    listener();
-  }
-
-  return action;
-}
-```
-
-- 中间件实现-洋葱模型
-  ![洋葱模型](imgs/onion.png)
-
-```ts
-// 假如我现在有两个中间件，middleware = [logger1, logger2]
-// 由 compose 函数可知，logger1 的 next 参数为 logger2 的返回值，logger2 的 next参数为store.dispatch，如果有更多中间件，以此类推。注意：中间件只有执行 next 方法才会向下继续执行
-// 所以调用 dispatch 就相当于经历了一层层的中间件，最终调用 store.dispatch(action)
-const dispatch = compose(...middleware)(store.dispatch);
-```
-
-自己实现一个通用的洋葱模型构造器
-
-```ts
-// middleware 建议的格式
-const middleware =
-  (next) =>
-  (...args) => {
-    // ...对args业务处理
-
-    // 经过处理过的参数传递到下一颗洋葱
-    next(...afterArgs);
-    // 最终的核心洋葱会调用core(...afterArgs)
-  };
-
-export function createOnion(middlewares, core) {
-  return compose(...middlewares)(core);
 }
 ```

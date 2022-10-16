@@ -32,8 +32,11 @@
         }
       }
 
-      var middleware = [ReduxThunk, logger1, logger2]
-      var store = Redux.createStore(counter, Redux.applyMiddleware(...middleware));
+      var middleware = [ReduxThunk, logger1, logger2];
+      var store = Redux.createStore(
+        counter,
+        Redux.applyMiddleware(...middleware)
+      );
       var valueEl = document.getElementById("value");
 
       function render() {
@@ -54,8 +57,8 @@
         .addEventListener("click", function () {
           store.dispatch((dispatch) => {
             setTimeout(() => {
-              dispatch({ type: "DECREMENT" })
-            },1000)
+              dispatch({ type: "DECREMENT" });
+            }, 1000);
           });
         });
 
