@@ -1,13 +1,22 @@
-# redux
+# REDUX
 
-本文主要总结一些 redux 源码库中的设计思路和值得学习的工具方法，如需学习源码流程请在[仓库](https://github.com/ImDaret/redux-debugger)中自行 debugger 进行了解
+## 前言
 
-## 如何 debugger 源码
+本文主要带着大家分析redux源码的主流程，适合有一定redux使用基础的人阅读，主要分为以下模块
 
-- 打开 examples 目录下有 index.html
+- [为什么诞生](#为什么诞生)
+- [主流程](#主流程)
+- [工具函数](#工具函数)
+- [思考](#思考)
+- [FAQ](#faq)
 
-- 打开开发者工具，在下图位置进行断点
-  [![debugger](imgs/debugger.png)](https://github.com/ImDaret/redux-debugger/blob/main/imgs/debugger.png)
+**注意事项：为了便于读者理解，源码只会截取部分，如果想要进一步了解，可在[此仓库](https://github.com/ImDaret/reduxSaga-debugger)的 index.html 中自行 debugger**
+
+## 为什么诞生
+
+
+
+## 主流程
 
 ## 设计理念
 
@@ -56,7 +65,7 @@ function dispatch(action: A) {
 const dispatch = compose(...middleware)(store.dispatch);
 ```
 
-## 工具方法
+## 工具函数
 
 - 判断一个对象是否是普通对象
 
@@ -93,3 +102,7 @@ function compose(...funcs: Function[]) {
   );
 }
 ```
+
+## 思考
+
+## FAQ
