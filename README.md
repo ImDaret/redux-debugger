@@ -4,11 +4,13 @@
 
 本文主要带着大家分析 redux 源码的主流程，适合有一定 redux 使用基础的人阅读，主要分为以下模块
 
-- [为什么诞生](#为什么诞生)
-- [主流程](#主流程)
-- [工具函数](#工具函数)
-- [思考](#思考)
-- [FAQ](#faq)
+- [REDUX](#redux)
+  - [前言](#前言)
+  - [为什么诞生](#为什么诞生)
+  - [主流程](#主流程)
+  - [工具函数](#工具函数)
+  - [思考](#思考)
+  - [FAQ](#faq)
 
 **注意事项：为了便于读者理解，源码只会截取部分，如果想要进一步了解，可在[此仓库](https://github.com/ImDaret/reduxSaga-debugger)的 index.html 中自行 debugger**
 
@@ -146,52 +148,67 @@ export default function combineReducers(reducers: ReducersMapObject) {
 }
 ```
 
-## 设计理念
+那既然 redux 要求 reducer 要求是一个纯函数，那我如果想调用接口或者从浏览器缓存读数据这些操作具有副作用的操作应该写在哪？幸好 redux 提供了 applyMiddleware 这个 api，它以中间件的设计模式，供用户增强自己的 dispatch,著名的 redux-thunk、redux-saga 就是 redux 中间件
 
-单向数据流
+```ts
+export default function applyMiddleware(
+  ...middlewares: Middleware[]
+): StoreEnhancer<any> {
+  // 返回一个createStore, 增强了dispatch
+  return (createStore: StoreEnhancerStoreCreator) =>
+    <S, A extends AnyAction>(
+      reducer: Reducer<S, A>,
+      preloadedState?: PreloadedState<S>
+    ) => {
+      // 创建一个store
+      const store = createStore(reducer, preloadedState);
+
+      const middlewareAPI: MiddlewareAPI = {
+        getState: store.getState,
+        dispatch: (action, ...args) => dispatch(action, ...args),
+      };
+
+      // 调用中间件，传入getState和dispatch
+      const chain = middlewares.map((middleware) => middleware(middlewareAPI));
+
+      // compose在下方的工具函数有介绍，这里就是第二次调用中间件，后一个中间件的next参数就是前一个中间件的返回值，直到调用store.dispatch
+      dispatch = compose<typeof dispatch>(...chain)(store.dispatch);
+
+      return {
+        ...store,
+        dispatch,
+      };
+    };
+}
+```
+
+一起看下 redux-thunk 的源码，增强对中间件的理解
+
+```ts
+function createThunkMiddleware<
+  State = any,
+  BasicAction extends Action = AnyAction,
+  ExtraThunkArg = undefined
+>(extraArgument?: ExtraThunkArg) {
+  const middleware: ThunkMiddleware<State, BasicAction, ExtraThunkArg> =
+    ({ dispatch, getState }) =>
+    (next) =>
+    (action) => {
+      // 如果action是一个函数则调用它，并把dispatch和getState传入，以便发起下一个action
+      if (typeof action === "function") {
+        return action(dispatch, getState, extraArgument);
+      }
+
+      // 否则，调用下一个中间件
+      return next(action);
+    };
+  return middleware;
+}
+```
+
+看到这，相信你不得不惊叹 redux 设计的巧妙，它要求 state 不能直接修改，只能通过 reducer 返回一个新的 state，reducer 又只能通过 dispatch 一个 action 触发，形成了单项数据流，但是这就要求了 reducer 必须是一个纯函数，所以又利用中间件模式。打造一个增强的 dispatch，让我们在触发真正的 dispatch 之前，可以处理一些副作用等等，让我们浅浅画个流程图，来理解一下单项数据流
+
 [![流程](imgs/process.png)](https://github.com/ImDaret/redux-debugger/blob/main/imgs/process.png)
-
-## 设计思路
-
-### currentListener & nextListener 保证订阅只在下一次 dispatch 生效
-
-订阅时`push`进 nextListeners
-
-```ts
-function subscribe(listener: () => void) {
-  // ...抛错代码
-  nextListeners.push(listener);
-  return function unsubscribe() {
-    nextListeners.splice(index, 1);
-  };
-}
-```
-
-dispatch 时对 currentListener 赋值，并且触发订阅
-
-```ts
-function dispatch(action: A) {
-  // ....
-  const listeners = (currentListeners = nextListeners); // 赋值并触发订阅
-  for (let i = 0; i < listeners.length; i++) {
-    const listener = listeners[i];
-    listener();
-  }
-
-  return action;
-}
-```
-
-### 中间件实现-洋葱模型
-
-[![洋葱模型](imgs/onion.png)](https://github.com/ImDaret/redux-debugger/blob/main/imgs/onion.png)
-
-```ts
-// 假如我现在有两个中间件，middleware = [logger1, logger2]
-// 由 compose 函数可知，logger1 的 next 参数为 logger2 的返回值，logger2 的 next参数为store.dispatch，如果有更多中间件，以此类推。注意：中间件只有执行 next 方法才会向下继续执行
-// 所以调用 dispatch 就相当于经历了一层层的中间件，最终调用 store.dispatch(action)
-const dispatch = compose(...middleware)(store.dispatch);
-```
 
 ## 工具函数
 
