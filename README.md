@@ -250,7 +250,7 @@ function compose(...funcs: Function[]) {
 
 ## 思考
 
-redux 写法如此繁琐，也无法和 ts 很好配合，然后其 immutable 的核心和 context 结合还有性能问题，它是如何在众多 react 状态管理库中脱颖而出的呢？我觉得最关键的就是 redux 的哲学，借鉴 flux 的单项数据流的架构，使得调试和时间旅行变得非常容易，使用 immutable 使 state 只读，每次修改只能返回一个新的对象，降低了复杂度，也节省了内存的开销，另外它还利用类似 koa 的洋葱模型思想，可以传入中间件完成一些额外的事情，比如打印日志，处理副作用等，扩展性很好。
+redux 写法如此繁琐，也无法和 ts 很好配合，然后其 immutable 的核心和 context 结合还有性能问题，它是如何在众多 react 状态管理库中脱颖而出的呢？我觉得最关键的就是 redux 的哲学，借鉴 flux 的单项数据流的架构，使得调试和时间旅行变得非常容易，使用 immutable 使 state 只读，每次修改只能返回一个新的对象，降低了复杂度，另外它还利用类似 koa 的洋葱模型思想，可以传入中间件完成一些额外的事情，比如打印日志，处理副作用等，扩展性很好。
 
 ## FAQ
 
@@ -271,6 +271,6 @@ redux 写法如此繁琐，也无法和 ts 很好配合，然后其 immutable �
 - 要求中间件必须是一个高阶函数
 - 利用 compose 将这些高阶函数聚合起来，上一个高阶函数的参数就是下一个高阶函数，比如上一个高阶函数的参数叫做 next，当调用 next()时，就是执行了下一个高阶函数，直到最后的参数是 dispatch
 
-1. connect 的原理（react-redux 库中）
+4. connect 的原理（react-redux 库中）
 
--
+- 将 connect 包裹的组件与 provider 提供的订阅器关联，在 provider 中会订阅 store 中 state 的变化，当 state 发生变化时，通知所有与之关联的组件 reRender
